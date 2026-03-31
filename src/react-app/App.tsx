@@ -77,7 +77,7 @@ function App() {
 					To find out about your birthday gift you have to input the code.
 				</p>
 				<p className="tx-intro">
-					Answers to the questions below provide the first part of the code.
+					Answers to the questions below provide the first part of a sentence. Fill in the completed sentence to unlock your gift.
 				</p>
 
 				<form className="code-form" onSubmit={handleSubmit}>
