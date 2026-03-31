@@ -17,7 +17,38 @@
 }
 
 .terminal--reveal {
+	align-items: flex-start;
+	justify-content: center;
+	padding: clamp(3rem, 15vh, 8rem) 2rem 2rem;
+	position: fixed;
+	inset: 0;
+	z-index: 1;
+	width: 100%;
+	overflow: auto;
+}
+
+/* Tension + confetti: same shell as app, no reveal content yet */
+.terminal--interlude {
+	position: relative;
+	min-height: 100vh;
+	min-height: 100dvh;
+	display: flex;
 	align-items: center;
+	justify-content: center;
+	padding: 2rem;
+	overflow: hidden;
+}
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 
 /* Top-align so expanding a question does not re-center the whole column */
@@ -25,6 +56,33 @@
 	align-items: flex-start;
 	justify-content: center;
 	padding: clamp(2.5rem, 15vh, 8rem) 2rem 2rem;
+}
+
+.terminal--input .terminal-inner {
+	transition: opacity 1.4s ease-out;
+}
+
+.terminal--input .scanlines--input {
+	transition: opacity 1.4s ease-out;
+}
+
+.terminal--input::before,
+.terminal--input::after {
+	transition: opacity 1.4s ease-out;
+}
+
+.terminal--input--exit .terminal-inner {
+	opacity: 0;
+}
+
+.terminal--input--exit .scanlines--input {
+	opacity: 0;
+}
+
+.terminal--input--exit::before,
+.terminal--input--exit::after {
+	animation: none;
+	opacity: 0;
 }
 
 /* Continuous effects — code entry page only */
@@ -312,6 +370,38 @@
 	justify-content: center;
 }
 
+.code-form--shake {
+	animation: codeShake 0.45s ease;
+}
+
+@keyframes codeShake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	20% {
+		transform: translateX(-8px);
+	}
+	40% {
+		transform: translateX(8px);
+	}
+	60% {
+		transform: translateX(-5px);
+	}
+	80% {
+		transform: translateX(5px);
+	}
+}
+
+.code-error {
+	margin: 0.65rem 0 0;
+	font-size: 0.65rem;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: rgba(255, 100, 120, 0.95);
+	text-shadow: 0 0 8px rgba(255, 80, 100, 0.35);
+}
+
 .code-input {
 	flex: 1 1 12rem;
 	min-width: 0;
@@ -370,6 +460,11 @@
 	outline-offset: 2px;
 }
 
+.submit-btn:disabled {
+	opacity: 0.75;
+	cursor: not-allowed;
+}
+
 .enter-hint {
 	margin: 0.65rem 0 0;
 	font-size: 0.6rem;
@@ -394,26 +489,31 @@
 	padding: 2rem 1.5rem;
 }
 
-.reveal-label {
-	margin: 0 0 1.5rem;
-	font-size: clamp(1.1rem, 3vw, 1.4rem);
-	font-weight: 600;
-	letter-spacing: 0.4em;
-	text-transform: uppercase;
-	color: #00ff41;
-	text-shadow:
-		0 0 10px rgba(0, 255, 65, 0.7),
-		0 0 28px rgba(0, 255, 65, 0.3);
+/* Room for absolutely positioned details panel so it scrolls instead of clipping */
+.reveal-inner--details-open {
+	padding-bottom: min(14rem, 32vh);
 }
 
-.reveal-coords {
-	margin: 0 0 1rem;
-	font-size: clamp(1.25rem, 4vw, 1.75rem);
+.reveal-date {
+	margin: 0 0 0.65rem;
+	font-size: clamp(1.25rem, 4vw, 1.85rem);
 	font-weight: 500;
-	letter-spacing: 0.12em;
+	letter-spacing: 0.08em;
 	color: #00ff41;
 	text-shadow: 0 0 20px rgba(0, 255, 65, 0.45);
 	animation: coordsPulse 3s ease-in-out infinite;
+}
+
+.reveal-location {
+	margin: 0 0 1.75rem;
+	font-size: clamp(1rem, 3vw, 1.35rem);
+	font-weight: 600;
+	letter-spacing: 0.28em;
+	text-transform: uppercase;
+	color: rgba(0, 255, 65, 0.95);
+	text-shadow:
+		0 0 8px rgba(0, 255, 65, 0.55),
+		0 0 22px rgba(0, 255, 65, 0.2);
 }
 
 @keyframes coordsPulse {
@@ -428,38 +528,107 @@
 	}
 }
 
-.reveal-sub {
-	margin: 0 0 2rem;
-	font-size: 0.65rem;
-	letter-spacing: 0.12em;
-	color: rgba(0, 255, 65, 0.7);
+.reveal-details {
+	position: relative;
+	margin: 1.5rem 0 0;
+	width: 100%;
+	max-width: 20rem;
+	min-height: 1.75rem;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
 }
 
-.terminal-btn {
-	padding: 0.65rem 1.25rem;
+.reveal-details-trigger {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.35rem;
+	padding: 0.35rem 0.5rem;
 	font-family: inherit;
 	font-size: 0.65rem;
-	font-weight: 600;
-	letter-spacing: 0.2em;
-	text-transform: uppercase;
-	color: rgba(0, 255, 65, 0.85);
-	background: rgba(0, 25, 10, 0.85);
-	border: 1px solid rgba(0, 255, 65, 0.4);
-	border-radius: 2px;
+	font-weight: 500;
+	letter-spacing: 0.12em;
+	text-transform: lowercase;
+	font-variant: small-caps;
+	color: rgba(0, 255, 65, 0.52);
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid rgba(0, 255, 65, 0.22);
+	border-radius: 0;
 	cursor: pointer;
-	transition:
-		border-color 0.2s,
-		color 0.2s;
+	transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-.terminal-btn:hover {
-	border-color: #00ff41;
-	color: #00ff41;
+.reveal-details-trigger::after {
+	content: "▾";
+	font-size: 0.58rem;
+	opacity: 0.6;
+	transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.terminal-btn:focus-visible {
-	outline: 2px solid #00ff41;
-	outline-offset: 2px;
+.reveal-details-trigger--open::after {
+	transform: rotate(-180deg);
+}
+
+.reveal-details-trigger:hover {
+	color: rgba(0, 255, 65, 0.68);
+	border-bottom-color: rgba(0, 255, 65, 0.35);
+}
+
+.reveal-details-trigger--open {
+	color: rgba(0, 255, 65, 0.62);
+	border-bottom-color: rgba(0, 255, 65, 0.3);
+}
+
+.reveal-details-trigger:focus-visible {
+	outline: 1px solid rgba(0, 255, 65, 0.45);
+	outline-offset: 3px;
+}
+
+.reveal-details-panel {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 100%;
+	margin-top: 0.5rem;
+	padding: 0.85rem 0.95rem;
+	text-align: left;
+	border: 1px solid rgba(0, 255, 65, 0.22);
+	border-radius: 3px;
+	background: rgba(0, 18, 8, 0.72);
+	box-shadow:
+		0 8px 28px rgba(0, 0, 0, 0.45),
+		inset 0 0 20px rgba(0, 255, 65, 0.04);
+	z-index: 3;
+	animation: revealBlurIn 0.65s ease forwards;
+}
+
+.reveal-details-list {
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.65rem;
+}
+
+.reveal-details-row {
+	margin: 0;
+}
+
+.reveal-details-row dt {
+	margin: 0 0 0.15rem;
+	font-size: 0.58rem;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: rgba(0, 255, 65, 0.52);
+}
+
+.reveal-details-row dd {
+	margin: 0;
+	font-size: 0.72rem;
+	line-height: 1.45;
+	color: rgba(0, 255, 65, 0.72);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -485,13 +654,132 @@
 		animation: none;
 	}
 
-	.reveal-coords {
+	.reveal-date {
 		animation: none;
+	}
+
+	.reveal-details-panel {
+		animation: none;
+		filter: none;
+		opacity: 1;
 	}
 
 	.question-reveal {
 		animation: none;
 		filter: none;
 		opacity: 1;
+	}
+
+	.code-form--shake {
+		animation: none;
+	}
+
+	.reveal-inner--entered {
+		animation: none;
+	}
+
+	.terminal--input .terminal-inner,
+	.terminal--input .scanlines--input,
+	.terminal--input::before,
+	.terminal--input::after {
+		transition: none;
+	}
+
+	.code-correct-box--in,
+	.code-correct-box--out {
+		animation: none;
+		filter: none;
+		opacity: 1;
+	}
+}
+
+/* Full-screen “CODE CORRECT” overlay (after unlock fade, before reveal) */
+.code-correct-layer {
+	position: fixed;
+	inset: 0;
+	z-index: 40;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2rem;
+	pointer-events: none;
+}
+
+.code-correct-box {
+	padding: 1.25rem 2.25rem;
+	border: 2px solid rgba(0, 255, 65, 0.7);
+	border-radius: 3px;
+	background: rgba(0, 14, 6, 0.96);
+	box-shadow:
+		0 0 48px rgba(0, 255, 65, 0.35),
+		inset 0 0 32px rgba(0, 255, 65, 0.08);
+	max-width: min(90vw, 22rem);
+	text-align: center;
+}
+
+.code-correct-box--in {
+	animation: codeCorrectIn 0.9s ease-out forwards;
+}
+
+.code-correct-box--out {
+	animation: codeCorrectOut 1s ease-in forwards;
+}
+
+@keyframes codeCorrectIn {
+	from {
+		opacity: 0;
+		transform: scale(0.94);
+		filter: blur(8px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+		filter: blur(0);
+	}
+}
+
+@keyframes codeCorrectOut {
+	from {
+		opacity: 1;
+		transform: scale(1);
+		filter: blur(0);
+	}
+	to {
+		opacity: 0;
+		transform: scale(0.97);
+		filter: blur(6px);
+	}
+}
+
+.code-correct-label {
+	display: block;
+	font-size: clamp(0.95rem, 3vw, 1.15rem);
+	font-weight: 600;
+	letter-spacing: 0.45em;
+	text-transform: uppercase;
+	color: #00ff41;
+	text-shadow:
+		0 0 12px rgba(0, 255, 65, 0.75),
+		0 0 36px rgba(0, 255, 65, 0.35);
+}
+
+.reveal-inner--entered {
+	animation: revealPopIn 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes revealPopIn {
+	0% {
+		opacity: 0;
+		transform: scale(0.78) translateY(36px);
+		filter: blur(16px) brightness(0.5);
+	}
+	55% {
+		opacity: 0.92;
+		filter: blur(3px) brightness(1.08);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+		filter: blur(0) brightness(1);
 	}
 }
