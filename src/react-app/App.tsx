@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from "react";
+import confetti from "canvas-confetti";
+import "./App.css";
 
 const UNLOCK_STORAGE_KEY = "rocknrola-gift-unlocked";
 
@@ -18,8 +20,6 @@ function persistUnlock() {
 		/* ignore quota / private mode */
 	}
 }
-import confetti from "canvas-confetti";
-import "./App.css";
 
 const TRANSMISSIONS = [
 	{
@@ -60,16 +60,29 @@ const CONFETTI_STREAM_MS = 4000;
 
 const CONFETTI_COLORS = ["#ff6b9d", "#ffd93d", "#6bcb77", "#4d96ff", "#ff6b6b"];
 
+function isTouchOrNarrowMobile(): boolean {
+	if (typeof window === "undefined") return false;
+	const coarse =
+		typeof window.matchMedia === "function" &&
+		window.matchMedia("(pointer: coarse)").matches;
+	return coarse || window.innerWidth <= 480;
+}
+
 function runBirthdayConfetti(streamDurationMs: number) {
 	const end = Date.now() + streamDurationMs;
+	const mobile = isTouchOrNarrowMobile();
 	const common = {
 		colors: CONFETTI_COLORS,
 		zIndex: 10000,
 	} as const;
 
+	const burst1 = mobile ? 70 : 140;
+	const burst2 = mobile ? 30 : 60;
+	const sideParticles = mobile ? 5 : 10;
+
 	confetti({
 		...common,
-		particleCount: 140,
+		particleCount: burst1,
 		spread: 160,
 		startVelocity: 55,
 		origin: { x: 0.5, y: 0.42 },
@@ -77,7 +90,7 @@ function runBirthdayConfetti(streamDurationMs: number) {
 	});
 	confetti({
 		...common,
-		particleCount: 60,
+		particleCount: burst2,
 		spread: 120,
 		startVelocity: 45,
 		origin: { x: 0.5, y: 0.55 },
@@ -85,21 +98,26 @@ function runBirthdayConfetti(streamDurationMs: number) {
 		gravity: 1.1,
 	});
 
+	let frameCount = 0;
 	const frame = () => {
-		confetti({
-			...common,
-			particleCount: 10,
-			angle: 60,
-			spread: 65,
-			origin: { x: 0, y: 0.92 },
-		});
-		confetti({
-			...common,
-			particleCount: 10,
-			angle: 120,
-			spread: 65,
-			origin: { x: 1, y: 0.92 },
-		});
+		frameCount += 1;
+		const shouldEmitSide = !mobile || frameCount % 3 === 0;
+		if (shouldEmitSide) {
+			confetti({
+				...common,
+				particleCount: sideParticles,
+				angle: 60,
+				spread: 65,
+				origin: { x: 0, y: 0.92 },
+			});
+			confetti({
+				...common,
+				particleCount: sideParticles,
+				angle: 120,
+				spread: 65,
+				origin: { x: 1, y: 0.92 },
+			});
+		}
 		if (Date.now() < end) {
 			requestAnimationFrame(frame);
 		}
