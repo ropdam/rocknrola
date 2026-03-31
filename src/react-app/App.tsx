@@ -60,29 +60,16 @@ const CONFETTI_STREAM_MS = 4000;
 
 const CONFETTI_COLORS = ["#ff6b9d", "#ffd93d", "#6bcb77", "#4d96ff", "#ff6b6b"];
 
-function isTouchOrNarrowMobile(): boolean {
-	if (typeof window === "undefined") return false;
-	const coarse =
-		typeof window.matchMedia === "function" &&
-		window.matchMedia("(pointer: coarse)").matches;
-	return coarse || window.innerWidth <= 480;
-}
-
 function runBirthdayConfetti(streamDurationMs: number) {
 	const end = Date.now() + streamDurationMs;
-	const mobile = isTouchOrNarrowMobile();
 	const common = {
 		colors: CONFETTI_COLORS,
 		zIndex: 10000,
 	} as const;
 
-	const burst1 = mobile ? 70 : 140;
-	const burst2 = mobile ? 30 : 60;
-	const sideParticles = mobile ? 5 : 10;
-
 	confetti({
 		...common,
-		particleCount: burst1,
+		particleCount: 140,
 		spread: 160,
 		startVelocity: 55,
 		origin: { x: 0.5, y: 0.42 },
@@ -90,7 +77,7 @@ function runBirthdayConfetti(streamDurationMs: number) {
 	});
 	confetti({
 		...common,
-		particleCount: burst2,
+		particleCount: 60,
 		spread: 120,
 		startVelocity: 45,
 		origin: { x: 0.5, y: 0.55 },
@@ -98,26 +85,21 @@ function runBirthdayConfetti(streamDurationMs: number) {
 		gravity: 1.1,
 	});
 
-	let frameCount = 0;
 	const frame = () => {
-		frameCount += 1;
-		const shouldEmitSide = !mobile || frameCount % 3 === 0;
-		if (shouldEmitSide) {
-			confetti({
-				...common,
-				particleCount: sideParticles,
-				angle: 60,
-				spread: 65,
-				origin: { x: 0, y: 0.92 },
-			});
-			confetti({
-				...common,
-				particleCount: sideParticles,
-				angle: 120,
-				spread: 65,
-				origin: { x: 1, y: 0.92 },
-			});
-		}
+		confetti({
+			...common,
+			particleCount: 10,
+			angle: 60,
+			spread: 65,
+			origin: { x: 0, y: 0.92 },
+		});
+		confetti({
+			...common,
+			particleCount: 10,
+			angle: 120,
+			spread: 65,
+			origin: { x: 1, y: 0.92 },
+		});
 		if (Date.now() < end) {
 			requestAnimationFrame(frame);
 		}
@@ -135,6 +117,8 @@ function App() {
 	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [shakeInput, setShakeInput] = useState(false);
 	const [detailsOpen, setDetailsOpen] = useState(false);
+	/** Correct code on touch device — show desktop-only message, no unlock */
+	const [mobileCorrect, setMobileCorrect] = useState(false);
 	const [preRevealPhase, setPreRevealPhase] = useState<
 		"none" | "form_fading" | "code_correct_visible" | "code_correct_fading"
 	>("none");
@@ -161,6 +145,15 @@ function App() {
 				setSubmitError("Invalid code");
 				setShakeInput(true);
 				window.setTimeout(() => setShakeInput(false), 500);
+				return;
+			}
+
+			const coarsePointer =
+				typeof window !== "undefined" &&
+				typeof window.matchMedia === "function" &&
+				window.matchMedia("(pointer: coarse)").matches;
+			if (coarsePointer) {
+				setMobileCorrect(true);
 				return;
 			}
 
@@ -199,6 +192,20 @@ function App() {
 
 	function toggleTx(id: number) {
 		setExpandedTx((current) => (current === id ? null : id));
+	}
+
+	if (mobileCorrect) {
+		return (
+			<div className="terminal">
+				<div className="scanlines" aria-hidden="true" />
+				<div className="terminal-inner">
+					<p className="terminal-label">Code correct!</p>
+					<p className="terminal-sub">
+						Open this on desktop and fill in the code for the full experience.
+					</p>
+				</div>
+			</div>
+		);
 	}
 
 	if (submitted) {
